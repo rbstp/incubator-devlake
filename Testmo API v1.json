@@ -1,0 +1,4807 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Testmo REST API",
+		"description": "The Testmo REST API enables applications to interact with Testmo instances.",
+		"termsOfService": "https://www.testmo.com/about/terms/",
+		"contact": {
+			"name": "Testmo Support",
+			"url": "https://www.testmo.com/",
+			"email": "contact@testmo.com"
+		},
+		"version": "2.1.0"
+	},
+	"components": {
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		},
+		"responses": {
+			"Error400": {
+				"description": "Returned if the request is invalid.",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/ErrorCollection"
+						}
+					}
+				}
+			},
+			"Error401": {
+				"description": "Returned if the authentication credentials are missing or invalid.",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/ErrorCollection"
+						}
+					}
+				}
+			},
+			"Error403": {
+				"description": "Returned if the permissions are not sufficient for this operation.",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/ErrorCollection"
+						}
+					}
+				}
+			},
+			"Error404": {
+				"description": "Returned if the requested resource does not exist.",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/ErrorCollection"
+						}
+					}
+				}
+			},
+			"Error415": {
+				"description": "Returned if the Content-Type header is invalid or missing from the request.",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/ErrorCollection"
+						}
+					}
+				}
+			},
+			"Error422": {
+				"description": "Returned if the input parameters are invalid. Detailed information about the errors are included in the response.",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/ErrorCollection"
+						}
+					}
+				}
+			}
+		},
+		"parameters": {
+			"expands": {
+				"name": "expands",
+				"in": "query",
+				"description": "Comma-separated list of expands to return.",
+				"required": false,
+				"schema": {
+					"type": "string"
+				}
+			},
+			"order": {
+				"name": "order",
+				"in": "query",
+				"description": "Sort order (ascending or descending).",
+				"required": false,
+				"schema": {
+					"type": "string",
+					"enum": [
+						"asc",
+						"desc"
+					]
+				}
+			},
+			"page": {
+				"name": "page",
+				"in": "query",
+				"description": "Number of page to return.",
+				"required": false,
+				"schema": {
+					"type": "integer",
+					"format": "int64"
+				}
+			},
+			"perPage": {
+				"name": "per_page",
+				"in": "query",
+				"description": "Maximum number of items to return per page.",
+				"required": false,
+				"schema": {
+					"type": "integer",
+					"format": "int64",
+					"enum": [
+						15,
+						25,
+						50,
+						100
+					]
+				}
+			}
+		},
+		"schemas": {
+			"AppendToAutomationRun": {
+				"type": "object",
+				"properties": {
+					"artifacts": {
+						"type": "array",
+						"description": "List of externally stored test artifacts to link to the automation run (such as log files, screenshots or test data).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"description": "List of fields to attach to the automation run (such as environment variables, errors or terminal output).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationField"
+						}
+					},
+					"links": {
+						"type": "array",
+						"description": "List of links to attach to the automation run (such as a link back to the build in the CI tool that triggered the tests).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationLink"
+						}
+					}
+				}
+			},
+			"AppendToAutomationRunThread": {
+				"type": "object",
+				"properties": {
+					"elapsed_observed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Partial observed elapsed (execution time) in microseconds to add to the overall observed time of the thread."
+					},
+					"elapsed_computed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Partial computed elapsed (execution time) in microseconds to add to the overall computed time of the thread. The _observed_ elapsed is usually derived from measuring the execution time of tests whereas the _computed_ elapsed is calculated from result log files."
+					},
+					"artifacts": {
+						"type": "array",
+						"description": "List of externally stored test artifacts to link to the thread (such as log files, screenshots or test data).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"description": "List of fields to attach to the thread (such as environment variables, errors or terminal output).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationField"
+						}
+					},
+					"tests": {
+						"type": "array",
+						"description": "List of tests to add to the thread.",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationTest"
+						}
+					}
+				}
+			},
+			"AutomationArtifact": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"note": {
+						"type": "string",
+						"nullable": true
+					},
+					"url": {
+						"type": "string"
+					},
+					"mime_type": {
+						"type": "string",
+						"nullable": true
+					},
+					"size": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"AutomationField": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "integer",
+						"format": "int8",
+						"enum": [
+							1,
+							2,
+							3,
+							4,
+							5
+						]
+					},
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					},
+					"meta": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"AutomationLink": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"note": {
+						"type": "string",
+						"nullable": true
+					},
+					"url": {
+						"type": "string"
+					}
+				}
+			},
+			"AutomationRun": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"project_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"source_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "integer",
+						"format": "int32",
+						"enum": [
+							2,
+							3,
+							4
+						]
+					},
+					"config_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"milestone_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"elapsed": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"is_completed": {
+						"type": "boolean"
+					},
+					"artifacts": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationField"
+						}
+					},
+					"links": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationLink"
+						}
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"threads": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationRunThread"
+						}
+					},
+					"untested_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status1_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status2_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status3_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status4_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status5_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status6_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status7_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status8_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status9_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status10_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status11_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status12_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status13_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status14_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status15_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status16_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status17_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status18_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status19_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status20_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status21_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status22_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status23_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status24_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"success_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failure_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"thread_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"thread_active_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"thread_completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"completed_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"completed_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"AutomationRunExpands": {
+				"type": "object",
+				"properties": {
+					"automation_sources": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationSourceExpand"
+						}
+					},
+					"configs": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ConfigurationExpand"
+						}
+					},
+					"milestones": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneExpand"
+						}
+					},
+					"statuses": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StatusExpand"
+						}
+					},
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"AutomationRunPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationRun"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/AutomationRunExpands"
+					}
+				}
+			},
+			"AutomationRunRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/AutomationRun"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/AutomationRunExpands"
+					}
+				}
+			},
+			"AutomationRunThread": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"index": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "integer",
+						"format": "int32",
+						"enum": [
+							2,
+							3,
+							4
+						]
+					},
+					"elapsed": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"is_completed": {
+						"type": "boolean"
+					},
+					"artifacts": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationField"
+						}
+					},
+					"untested_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status1_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status2_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status3_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status4_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status5_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status6_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status7_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status8_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status9_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status10_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status11_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status12_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status13_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status14_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status15_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status16_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status17_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status18_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status19_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status20_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status21_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status22_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status23_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status24_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"success_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failure_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"completed_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"completed_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"AutomationSource": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"project_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"status": {
+						"type": "integer",
+						"format": "int32",
+						"enum": [
+							1,
+							2,
+							3
+						]
+					},
+					"is_retired": {
+						"type": "boolean"
+					},
+					"run_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"test_count_average": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"elapsed_average": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"ran_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"retired_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"retired_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"AutomationSourceExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"AutomationSourceExpands": {
+				"type": "object",
+				"properties": {
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"AutomationSourcePage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/AutomationSource"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/AutomationSourceExpands"
+					}
+				}
+			},
+			"AutomationSourceRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/AutomationSource"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/AutomationSourceExpands"
+					}
+				}
+			},
+			"CompleteAutomationRun": {
+				"type": "object",
+				"properties": {
+					"measure_elapsed": {
+						"type": "boolean",
+						"description": "Defines if the execution time of the automation run should automatically be set to the elapsed time between the creation and completion date of the run. This is useful in scenarios where the overall execution time of the run is independent from the execution times of its threads."
+					}
+				}
+			},
+			"CompleteAutomationRunThread": {
+				"type": "object",
+				"properties": {
+					"elapsed_observed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Observed overall elapsed (execution time) of the thread in microseconds."
+					},
+					"elapsed_computed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Computed overall elapsed (execution time) of the thread in microseconds. The _observed_ elapsed is usually derived from measuring the execution time of tests whereas the _computed_ elapsed is calculated from result log files."
+					}
+				}
+			},
+			"ConfigurationExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"CreateAutomationArtifact": {
+				"type": "object",
+				"required": [
+					"name",
+					"url"
+				],
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name or file name of the test artifact."
+					},
+					"note": {
+						"type": "string",
+						"description": "Short note or summary of the test artifact with a maximum of 80 characters."
+					},
+					"url": {
+						"type": "string",
+						"description": "Link to an external resource to download the test artifact."
+					},
+					"mime_type": {
+						"type": "string",
+						"description": "MIME type of the test artifact (for example, `image/png`, `text/plain` or `application/octet-stream`)."
+					},
+					"size": {
+						"type": "integer",
+						"format": "int64",
+						"description": "File size of the test artifact in bytes."
+					}
+				}
+			},
+			"CreateAutomationField": {
+				"type": "object",
+				"required": [
+					"type",
+					"name"
+				],
+				"properties": {
+					"type": {
+						"type": "integer",
+						"format": "int8",
+						"enum": [
+							1,
+							2,
+							3,
+							4,
+							5
+						],
+						"description": "Type of the field. Use: `1` for regular strings, `2` for plain text, `3` for HTML text, `4` for text to display in a terminal/console frame (with a monospaced font), `5` for URLs."
+					},
+					"name": {
+						"type": "string",
+						"description": "Name of the field."
+					},
+					"value": {
+						"type": "string",
+						"description": "Value of the field (interpreted as defined by `type`)."
+					},
+					"meta": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "string"
+						},
+						"description": "Meta fields to attach to the field (to store extra information with a field)."
+					},
+					"is_highlight": {
+						"type": "boolean",
+						"description": "Defines if the field (or related meta fields) are highlighted in the user interface."
+					}
+				}
+			},
+			"CreateAutomationLink": {
+				"type": "object",
+				"required": [
+					"name",
+					"url"
+				],
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name or file name of the link."
+					},
+					"note": {
+						"type": "string",
+						"description": "Short note or summary of the link with a maximum of 80 characters."
+					},
+					"url": {
+						"type": "string",
+						"description": "Link to an external resource or website."
+					}
+				}
+			},
+			"CreateAutomationRun": {
+				"type": "object",
+				"required": [
+					"name",
+					"source"
+				],
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of the new automation run."
+					},
+					"source": {
+						"type": "string",
+						"description": "Name of the source for the new automation run. If this source does not already exist in the target project, Testmo automatically creates a new one. It is recommended to keep source names short. Good examples are `backend`, `frontend` or `mobile-iphone`."
+					},
+					"config": {
+						"type": "string",
+						"description": "Name of the configuration for the new automation run."
+					},
+					"config_id": {
+						"type": "integer",
+						"format": "int64",
+						"description": "ID of the configuration for the new automation run. If both `config` and `config_id` are specified, `config_id` is given precedence."
+					},
+					"milestone": {
+						"type": "string",
+						"description": "Name of the milestone for the new automation run."
+					},
+					"milestone_id": {
+						"type": "integer",
+						"format": "int64",
+						"description": "ID of the milestone for the new automation run. If both `milestone` and `milestone_id` are specified, `milestone_id` is given precedence."
+					},
+					"tags": {
+						"type": "array",
+						"description": "List of tags for the new automation run. If a milestone in the same project has one or more matching automation tags, the new automation run is automatically linked to that milestone (unless `milestone` or `milestone_id` is also specified).",
+						"items": {
+							"type": "string"
+						}
+					},
+					"artifacts": {
+						"type": "array",
+						"description": "List of externally stored test artifacts to link to the new automation run (such as log files, screenshots or test data).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"description": "List of fields to attach to the new automation run (such as environment variables, errors or terminal output).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationField"
+						}
+					},
+					"links": {
+						"type": "array",
+						"description": "List of links to attach to the new automation run (such as a link back to the build in the CI tool that triggered the tests).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationLink"
+						}
+					}
+				}
+			},
+			"CreateAutomationRunThread": {
+				"type": "object",
+				"properties": {
+					"elapsed_observed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Observed overall elapsed (execution time) of the thread in microseconds."
+					},
+					"elapsed_computed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Computed overall elapsed (execution time) of the thread in microseconds. The _observed_ elapsed is usually derived from measuring the execution time of tests whereas the _computed_ elapsed is calculated from result log files."
+					},
+					"artifacts": {
+						"type": "array",
+						"description": "List of externally stored test artifacts to link to the new thread (such as log files, screenshots or test data).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"description": "List of fields to attach to the new thread (such as environment variables, errors or terminal output).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationField"
+						}
+					}
+				}
+			},
+			"CreateAutomationTest": {
+				"type": "object",
+				"required": [
+					"key",
+					"name",
+					"status",
+					"folder"
+				],
+				"properties": {
+					"key": {
+						"type": "string",
+						"pattern": "^[a-z0-9_]{1,64}$",
+						"description": "Key used to identify tests across multiple automation runs (in the context of the same source). Limited to a maximum of 64 lowercase alphanumeric (a-z, 0-9) characters."
+					},
+					"name": {
+						"type": "string",
+						"description": "Name of the test."
+					},
+					"status": {
+						"type": "string",
+						"pattern": "^[a-z0-9_]+$",
+						"description": "Alias of the status for the result of the test (for example, `failed` or `passed`). The status aliases can be configured in Testmo's admin area."
+					},
+					"folder": {
+						"type": "string",
+						"description": "Fully qualified name of the target folder of the test. Folders can be used to group related tests and usually map to class or type names as defined in the test automation suite."
+					},
+					"elapsed": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Overall execution time (observed or computed) of the test in microseconds."
+					},
+					"file": {
+						"type": "string",
+						"description": "Name of the file (with or without full path) the test is located in."
+					},
+					"line": {
+						"type": "integer",
+						"description": "Line number of the test in the given `file`."
+					},
+					"assertions": {
+						"type": "integer",
+						"description": "Number of assertions in the test."
+					},
+					"artifacts": {
+						"type": "array",
+						"description": "List of externally stored test artifacts to link to the test (such as log files, screenshots or test data).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationArtifact"
+						}
+					},
+					"fields": {
+						"type": "array",
+						"description": "List of fields to attach to the test (such as environment variables, errors or terminal output).",
+						"items": {
+							"$ref": "#/components/schemas/CreateAutomationField"
+						}
+					}
+				}
+			},
+			"CreatedAutomationRun": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64",
+						"description": "ID of the created automation run."
+					}
+				}
+			},
+			"CreatedAutomationRunThread": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64",
+						"description": "ID of the created automation run thread."
+					}
+				}
+			},
+			"CurrentUser": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"timezone": {
+						"type": "string",
+						"nullable": true
+					},
+					"date_format": {
+						"type": "string",
+						"nullable": true
+					},
+					"time_format": {
+						"type": "string",
+						"nullable": true
+					}
+				}
+			},
+			"ErrorCollection": {
+				"type": "object",
+				"properties": {
+					"message": {
+						"type": "string",
+						"description": "Description of error returned by this operation."
+					},
+					"errors": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"description": "List of input parameter related errors returned by this operation."
+					}
+				},
+				"example": {
+					"message":"The given data was invalid.",
+					"errors":{
+							"name": [
+								"The name field is required."
+							]
+					}
+				}
+			},
+			"FieldValueExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"icon": {
+						"type": "string",
+						"nullable": true
+					},
+					"color": {
+						"type": "string",
+						"nullable": true
+					}
+				}
+			},
+			"Group": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"members": {
+						"type": "array",
+						"items": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"GroupExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"GroupExpands": {
+				"type": "object",
+				"properties": {
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"GroupPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Group"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/GroupExpands"
+					}
+				}
+			},
+			"GroupRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/Group"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/GroupExpands"
+					}
+				}
+			},
+			"IssueExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"type": {
+						"type": "integer",
+						"format": "int32",
+						"enum": [
+							1,
+							2,
+							3,
+							4
+						]
+					},
+					"display_id": {
+						"type": "string"
+					},
+					"external_project_id": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"external_project_key": {
+						"type": "string",
+						"nullable": true
+					}
+				}
+			},
+			"Milestone": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"project_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"root_id": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"parent_id": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"type_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"note": {
+						"type": "string",
+						"nullable": true
+					},
+					"is_started": {
+						"type": "boolean"
+					},
+					"is_completed": {
+						"type": "boolean"
+					},
+					"start_date": {
+						"type": "string",
+						"nullable": true
+					},
+					"due_date": {
+						"type": "string",
+						"nullable": true
+					},
+					"automation_tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"issues": {
+						"type": "array",
+						"items": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					"links": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneLink"
+						}
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"completed_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					}
+				}
+			},
+			"MilestoneExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"MilestoneExpands": {
+				"type": "object",
+				"properties": {
+					"issues": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/IssueExpand"
+						}
+					},
+					"milestone_stats": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneStatsExpand"
+						}
+					},
+					"milestone_types": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneTypeExpand"
+						}
+					},
+					"milestones": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneExpand"
+						}
+					},
+					"statuses": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StatusExpand"
+						}
+					},
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"MilestoneLink": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"note": {
+						"type": "string",
+						"nullable": true
+					},
+					"url": {
+						"type": "string"
+					}
+				}
+			},
+			"MilestonePage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Milestone"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/MilestoneExpands"
+					}
+				}
+			},
+			"MilestoneRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/Milestone"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/MilestoneExpands"
+					}
+				}
+			},
+			"MilestoneStatsExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"untested_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status1_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status2_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status3_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status4_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status5_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status6_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status7_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status8_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status9_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status10_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status11_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status12_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status13_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status14_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status15_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status16_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status17_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status18_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status19_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status20_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status21_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status22_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status23_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status24_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"success_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failure_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total_count": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"MilestoneTypeExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"is_default": {
+						"type": "boolean"
+					}
+				}
+			},
+			"Project": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"is_completed": {
+						"type": "boolean"
+					},
+					"milestone_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"milestone_active_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"milestone_completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"run_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"run_active_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"run_closed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"session_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"session_active_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"session_closed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"automation_source_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"automation_source_active_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"automation_source_retired_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"automation_run_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"automation_run_active_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"automation_run_completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"completed_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					}
+				}
+			},
+			"ProjectExpands": {
+				"type": "object",
+				"properties": {
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"ProjectPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Project"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/ProjectExpands"
+					}
+				}
+			},
+			"ProjectRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/Project"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/ProjectExpands"
+					}
+				}
+			},
+			"ProjectUser": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"ProjectUserPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ProjectUser"
+						}
+					}
+				}
+			},
+			"Role": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"permissions": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"is_default": {
+						"type": "boolean"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"RoleExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"RoleExpands": {
+				"type": "object",
+				"properties": {
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"RolePage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Role"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/RoleExpands"
+					}
+				}
+			},
+			"RoleRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/Role"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/RoleExpands"
+					}
+				}
+			},
+			"Run": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"project_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"config_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"milestone_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"state_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"forecast": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"forecast_completed": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"elapsed": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"is_started": {
+						"type": "boolean"
+					},
+					"is_closed": {
+						"type": "boolean"
+					},
+					"issues": {
+						"type": "array",
+						"items": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					"links": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RunLink"
+						}
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"untested_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status1_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status2_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status3_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status4_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status5_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status6_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status7_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status8_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status9_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status10_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status11_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status12_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status13_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status14_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status15_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status16_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status17_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status18_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status19_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status20_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status21_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status22_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status23_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status24_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"success_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failure_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"closed_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"closed_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"RunExpands": {
+				"type": "object",
+				"properties": {
+					"configs": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ConfigurationExpand"
+						}
+					},
+					"issues": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/IssueExpand"
+						}
+					},
+					"milestones": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneExpand"
+						}
+					},
+					"states": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StateExpand"
+						}
+					},
+					"statuses": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StatusExpand"
+						}
+					},
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"RunLink": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"note": {
+						"type": "string",
+						"nullable": true
+					},
+					"url": {
+						"type": "string"
+					}
+				}
+			},
+			"RunPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Run"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/RunExpands"
+					}
+				}
+			},
+			"RunRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/Run"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/RunExpands"
+					}
+				}
+			},
+			"RunResult": {
+				"type": "object",
+				"properties": {
+				  "id": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "project_id": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "run_id": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "test_id": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "case_id": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "status_id": {
+					"type": "integer",
+					"format": "int32"
+				  },
+				  "is_latest": {
+					"type": "boolean"
+				  },
+				  "note": {
+					"type": "string",
+					"nullable": true
+				  },
+				  "elapsed": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "assignee_id": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "issues": {
+					"type": "array",
+					"items": {
+					  "type": "integer",
+					  "format": "int64"
+					}
+				  },
+				  "created_at": {
+					"type": "string",
+					"format": "date-time"
+				  },
+				  "created_by": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "updated_at": {
+					"type": "string",
+					"format": "date-time",
+					"nullable": true
+				  },
+				  "updated_by": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "deleted_at": {
+					"type": "string",
+					"format": "date-time",
+					"nullable": true
+				  },
+				  "deleted_by": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  }
+				}
+			},
+			"RunResultExpands": {
+				"type": "object",
+				"properties": {
+				  "issues": {
+					"type": "array",
+					"items": {
+					  "$ref": "#/components/schemas/IssueExpand"
+					}
+				  },
+				  "users": {
+					"type": "array",
+					"items": {
+					  "$ref": "#/components/schemas/UserExpand"
+					}
+				  },
+				  "statuses": {
+					"type": "array",
+					"items": {
+					  "$ref": "#/components/schemas/StatusExpand"
+					}
+				  }
+				}
+			},
+			"RunResultPage": {
+				"type": "object",
+				"properties": {
+				  "page": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "prev_page": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "next_page": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "last_page": {
+					"type": "integer",
+					"format": "int64",
+					"nullable": true
+				  },
+				  "per_page": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "total": {
+					"type": "integer",
+					"format": "int64"
+				  },
+				  "result": {
+					"type": "array",
+					"items": {
+					  "$ref": "#/components/schemas/RunResult"
+					}
+				  },
+				  "expands": {
+					"$ref": "#/components/schemas/RunResultExpands"
+				  }
+				}
+			},
+			"RunResultRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/RunResult"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/RunResultExpands"
+					}
+				}
+			},
+			"Session": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"project_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"template_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"config_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"milestone_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"state_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"assignee_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"estimate": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"forecast": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"elapsed": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"is_started": {
+						"type": "boolean"
+					},
+					"is_closed": {
+						"type": "boolean"
+					},
+					"issues": {
+						"type": "array",
+						"items": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					"tags": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"untested_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status1_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status2_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status3_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status4_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status5_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status6_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status7_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status8_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status9_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status10_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status11_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status12_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status13_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status14_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status15_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status16_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status17_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status18_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status19_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status20_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status21_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status22_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status23_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"status24_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"success_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"failure_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"completed_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"closed_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"closed_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"SessionExpands": {
+				"type": "object",
+				"properties": {
+					"configs": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ConfigurationExpand"
+						}
+					},
+					"field_values": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/FieldValueExpand"
+						}
+					},
+					"issues": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/IssueExpand"
+						}
+					},
+					"milestones": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/MilestoneExpand"
+						}
+					},
+					"states": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StateExpand"
+						}
+					},
+					"statuses": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/StatusExpand"
+						}
+					},
+					"templates": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/TemplateExpand"
+						}
+					},
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"SessionPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Session"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/SessionExpands"
+					}
+				}
+			},
+			"SessionRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/Session"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/SessionExpands"
+					}
+				}
+			},
+			"StateExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"is_default": {
+						"type": "boolean"
+					}
+				}
+			},
+			"StatusExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"system_name": {
+						"type": "string"
+					},
+					"color": {
+						"type": "string"
+					},
+					"is_final": {
+						"type": "boolean"
+					},
+					"is_untested": {
+						"type": "boolean"
+					},
+					"is_passed": {
+						"type": "boolean"
+					},
+					"is_failed": {
+						"type": "boolean"
+					},
+					"aliases": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"TemplateExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"is_default": {
+						"type": "boolean"
+					}
+				}
+			},
+			"User": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"type": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"timezone": {
+						"type": "string",
+						"nullable": true
+					},
+					"date_format": {
+						"type": "string",
+						"nullable": true
+					},
+					"time_format": {
+						"type": "string",
+						"nullable": true
+					},
+					"notifications": {
+						"type": "integer",
+						"format": "int64",
+						"enum": [
+							1,
+							2,
+							3
+						]
+					},
+					"tfa_enabled": {
+						"type": "boolean"
+					},
+					"is_active": {
+						"type": "boolean"
+					},
+					"is_forgotten": {
+						"type": "boolean"
+					},
+					"is_api": {
+						"type": "boolean"
+					},
+					"role_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"groups": {
+						"type": "array",
+						"items": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_by": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true
+					},
+					"updated_by": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					}
+				}
+			},
+			"UserExpand": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"UserExpands": {
+				"type": "object",
+				"properties": {
+					"groups": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/GroupExpand"
+						}
+					},
+					"roles": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RoleExpand"
+						}
+					},
+					"users": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/UserExpand"
+						}
+					}
+				}
+			},
+			"UserPage": {
+				"type": "object",
+				"properties": {
+					"page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"prev_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"next_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"last_page": {
+						"type": "integer",
+						"format": "int64",
+						"nullable": true
+					},
+					"per_page": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"result": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/User"
+						}
+					},
+					"expands": {
+						"$ref": "#/components/schemas/UserExpands"
+					}
+				}
+			},
+			"UserRow": {
+				"type": "object",
+				"properties": {
+					"result": {
+						"$ref": "#/components/schemas/User"
+					},
+					"expands": {
+						"$ref": "#/components/schemas/UserExpands"
+					}
+				}
+			}
+		}
+	},
+	"security": [
+		{
+			"bearerAuth": []
+		}
+	],
+	"tags": [
+		{ "name": "automation-runs" },
+		{ "name": "automation-sources" },
+		{ "name": "groups" },
+		{ "name": "projects" },
+		{ "name": "milestones" },
+		{ "name": "roles" },
+		{ "name": "sessions" },
+		{ "name": "user" },
+		{ "name": "users" },
+		{ "name": "run-results" }
+	],
+	"paths": {
+		"/api/v1/projects/{project_id}/automation/runs": {
+			"get": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Get all automation runs for a project",
+				"description": "Returns a page of automation runs for a project.",
+				"operationId": "getAutomationRunPage",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" },
+					{
+						"name": "sort",
+						"in": "query",
+						"description": "Sort field for the list of automation runs.",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"automation_runs:created_at"
+							]
+						}
+					},
+					{ "$ref": "#/components/parameters/order" },
+					{
+						"name": "config_id",
+						"in": "query",
+						"description": "Comma-separated list of configurations to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "created_after",
+						"in": "query",
+						"description": "Limit result to automation runs created after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_before",
+						"in": "query",
+						"description": "Limit result to automation runs created before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_by",
+						"in": "query",
+						"description": "Comma-separated list of users to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "milestone_id",
+						"in": "query",
+						"description": "Comma-separated list of milestones to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "source_id",
+						"in": "query",
+						"description": "Comma-separated list of automation sources to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Comma-separated list of statuses to filter by. Use: `2` for success, `3` for failure, `4` for running.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "tags",
+						"in": "query",
+						"description": "Comma-separated list of tags to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AutomationRunPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			},
+			"post": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Create a new automation run",
+				"description": "Creates a new automation run in a target project in preparation for adding threads and test results.",
+				"operationId": "createAutomationRun",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the target project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateAutomationRun"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreatedAutomationRun"
+								},
+								"example": {
+									"id": 1
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects/{project_id}/automation/sources": {
+			"get": {
+				"tags": [
+					"automation-sources"
+				],
+				"summary": "Get all automation sources for a project",
+				"description": "Returns a page of automation sources for a project.",
+				"operationId": "getAutomationSourcePage",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" },
+					{
+						"name": "sort",
+						"in": "query",
+						"description": "Sort field for the list of automation sources.",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"automation_sources:created_at",
+								"automation_sources:ran_at",
+								"automation_sources:retired_at"
+							]
+						}
+					},
+					{ "$ref": "#/components/parameters/order" },
+					{
+						"name": "is_retired",
+						"in": "query",
+						"description": "Limit result to active or retired automation sources only.",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AutomationSourcePage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/runs/{automation_run_id}": {
+			"get": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Get a single automation run",
+				"description": "Returns a single automation run.",
+				"operationId": "getAutomationRun",
+				"parameters": [
+					{
+						"name": "automation_run_id",
+						"in": "path",
+						"description": "ID of the automation run to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AutomationRunRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/runs/{automation_run_id}/append": {
+			"post": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Append resources to an automation run",
+				"description": "Appends test artifacts, fields or links to an existing automation run.",
+				"operationId": "appendToAutomationRun",
+				"parameters": [
+					{
+						"name": "automation_run_id",
+						"in": "path",
+						"description": "ID of the automation run.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AppendToAutomationRun"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Returned if the request was successful."
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/runs/{automation_run_id}/complete": {
+			"post": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Complete an automation run",
+				"description": "Marks an automation run and its threads as completed and closes it for new threads and test results.",
+				"operationId": "completeAutomationRun",
+				"parameters": [
+					{
+						"name": "automation_run_id",
+						"in": "path",
+						"description": "ID of the automation run to complete.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CompleteAutomationRun"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Returned if the request was successful."
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/runs/{automation_run_id}/threads": {
+			"post": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Create a new automation run thread",
+				"description": "Creates a new thread in an automation run in preparation for adding test results.",
+				"operationId": "createAutomationRunThread",
+				"parameters": [
+					{
+						"name": "automation_run_id",
+						"in": "path",
+						"description": "ID of the target automation run.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateAutomationRunThread"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreatedAutomationRunThread"
+								},
+								"example": {
+									"id": 1
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/runs/threads/{automation_run_thread_id}/append": {
+			"post": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Append resources and test results to a thread",
+				"description": "Appends test artifacts, fields or test results to an existing thread in an automation run.",
+				"operationId": "appendToAutomationRunThread",
+				"parameters": [
+					{
+						"name": "automation_run_thread_id",
+						"in": "path",
+						"description": "ID of the automation run thread.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AppendToAutomationRunThread"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Returned if the request was successful."
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/runs/threads/{automation_run_thread_id}/complete": {
+			"post": {
+				"tags": [
+					"automation-runs"
+				],
+				"summary": "Complete a thread in an automation run",
+				"description": "Marks an automation run thread as completed and closes it for new test results.",
+				"operationId": "completeAutomationRunThread",
+				"parameters": [
+					{
+						"name": "automation_run_thread_id",
+						"in": "path",
+						"description": "ID of the automation run thread to complete.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CompleteAutomationRunThread"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Returned if the request was successful."
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/automation/sources/{automation_source_id}": {
+			"get": {
+				"tags": [
+					"automation-sources"
+				],
+				"summary": "Get a single automation source",
+				"description": "Returns a single automation source.",
+				"operationId": "getAutomationSource",
+				"parameters": [
+					{
+						"name": "automation_source_id",
+						"in": "path",
+						"description": "ID of the automation source to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AutomationSourceRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/groups": {
+			"get": {
+				"tags": [
+					"groups"
+				],
+				"summary": "Get all groups",
+				"description": "Returns a page of groups.",
+				"operationId": "getGroupPage",
+				"parameters": [
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GroupPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/groups/{group_id}": {
+			"get": {
+				"tags": [
+					"groups"
+				],
+				"summary": "Get a single group",
+				"description": "Returns a single group.",
+				"operationId": "getGroup",
+				"parameters": [
+					{
+						"name": "group_id",
+						"in": "path",
+						"description": "ID of the group to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GroupRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/milestones/{milestone_id}": {
+			"get": {
+				"tags": [
+					"milestones"
+				],
+				"summary": "Get a single milestone",
+				"description": "Returns a single milestone.",
+				"operationId": "getMilestone",
+				"parameters": [
+					{
+						"name": "milestone_id",
+						"in": "path",
+						"description": "ID of the milestone to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MilestoneRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects": {
+			"get": {
+				"tags": [
+					"projects"
+				],
+				"summary": "Get all projects",
+				"description": "Returns a page of projects.",
+				"operationId": "getProjectPage",
+				"parameters": [
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" },
+					{
+						"name": "sort",
+						"in": "query",
+						"description": "Sort field for the list of projects.",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"projects:created_at",
+								"projects:completed_at"
+							]
+						}
+					},
+					{ "$ref": "#/components/parameters/order" },
+					{
+						"name": "is_completed",
+						"in": "query",
+						"description": "Limit result to active or completed projects only.",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects/{project_id}": {
+			"get": {
+				"tags": [
+					"projects"
+				],
+				"summary": "Get a single project",
+				"description": "Returns a single project.",
+				"operationId": "getProject",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects/{project_id}/milestones": {
+			"get": {
+				"tags": [
+					"milestones"
+				],
+				"summary": "Get all milestones for a project",
+				"description": "Returns a page of milestones for a project.",
+				"operationId": "getMilestonePage",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" },
+					{
+						"name": "sort",
+						"in": "query",
+						"description": "Sort field for the list of milestones.",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"milestones:created_at",
+								"milestones:completed_at"
+							]
+						}
+					},
+					{ "$ref": "#/components/parameters/order" },
+					{
+						"name": "automation_tags",
+						"in": "query",
+						"description": "Comma-separated list of automation tags to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "completed_after",
+						"in": "query",
+						"description": "Limit result to milestones completed after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "completed_before",
+						"in": "query",
+						"description": "Limit result to milestones completed before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_after",
+						"in": "query",
+						"description": "Limit result to milestones created after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_before",
+						"in": "query",
+						"description": "Limit result to milestones created before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_by",
+						"in": "query",
+						"description": "Comma-separated list of users to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "is_completed",
+						"in": "query",
+						"description": "Limit result to active or completed milestones only.",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "parent_id",
+						"in": "query",
+						"description": "Comma-separated list of parent milestones to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "root_id",
+						"in": "query",
+						"description": "Comma-separated list of root milestones to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "type_id",
+						"in": "query",
+						"description": "Comma-separated list of milestone types to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MilestonePage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects/{project_id}/runs": {
+			"get": {
+				"tags": [
+					"runs"
+				],
+				"summary": "Get all runs for a project",
+				"description": "Returns a page of runs for a project.",
+				"operationId": "getRunPage",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" },
+					{
+						"name": "sort",
+						"in": "query",
+						"description": "Sort field for the list of runs.",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"runs:created_at",
+								"runs:closed_at"
+							]
+						}
+					},
+					{ "$ref": "#/components/parameters/order" },
+					{
+						"name": "closed_after",
+						"in": "query",
+						"description": "Limit result to runs closed after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "closed_before",
+						"in": "query",
+						"description": "Limit result to runs closed before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "config_id",
+						"in": "query",
+						"description": "Comma-separated list of configurations to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "created_after",
+						"in": "query",
+						"description": "Limit result to runs created after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_before",
+						"in": "query",
+						"description": "Limit result to runs created before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_by",
+						"in": "query",
+						"description": "Comma-separated list of users to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "is_closed",
+						"in": "query",
+						"description": "Limit result to active or closed runs only.",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "milestone_id",
+						"in": "query",
+						"description": "Comma-separated list of milestones to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "state_id",
+						"in": "query",
+						"description": "Comma-separated list of workflow states to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "tags",
+						"in": "query",
+						"description": "Comma-separated list of tags to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RunPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects/{project_id}/sessions": {
+			"get": {
+				"tags": [
+					"sessions"
+				],
+				"summary": "Get all sessions for a project",
+				"description": "Returns a page of sessions for a project.",
+				"operationId": "getSessionPage",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" },
+					{
+						"name": "sort",
+						"in": "query",
+						"description": "Sort field for the list of sessions.",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"sessions:created_at",
+								"sessions:closed_at"
+							]
+						}
+					},
+					{ "$ref": "#/components/parameters/order" },
+					{
+						"name": "assignee_id",
+						"in": "query",
+						"description": "Comma-separated list of assignees to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "closed_after",
+						"in": "query",
+						"description": "Limit result to sessions closed after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "closed_before",
+						"in": "query",
+						"description": "Limit result to sessions closed before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "config_id",
+						"in": "query",
+						"description": "Comma-separated list of configurations to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "created_after",
+						"in": "query",
+						"description": "Limit result to sessions created after (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_before",
+						"in": "query",
+						"description": "Limit result to sessions created before (in ISO8601 format and UTC time zone).",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"format": "date-time"
+						}
+					},
+					{
+						"name": "created_by",
+						"in": "query",
+						"description": "Comma-separated list of users to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "is_closed",
+						"in": "query",
+						"description": "Limit result to active or closed sessions only.",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "milestone_id",
+						"in": "query",
+						"description": "Comma-separated list of milestones to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "state_id",
+						"in": "query",
+						"description": "Comma-separated list of workflow states to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "tags",
+						"in": "query",
+						"description": "Comma-separated list of tags to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "template_id",
+						"in": "query",
+						"description": "Comma-separated list of templates to filter by.",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SessionPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/projects/{project_id}/users": {
+			"get": {
+				"tags": [
+					"users"
+				],
+				"summary": "Get all users for a project",
+				"description": "Returns a page of users for a project.",
+				"operationId": "getUserPageForProject",
+				"parameters": [
+					{
+						"name": "project_id",
+						"in": "path",
+						"description": "ID of the project.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectUserPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/roles": {
+			"get": {
+				"tags": [
+					"roles"
+				],
+				"summary": "Get all roles",
+				"description": "Returns a page of roles.",
+				"operationId": "getRolePage",
+				"parameters": [
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RolePage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/roles/{role_id}": {
+			"get": {
+				"tags": [
+					"roles"
+				],
+				"summary": "Get a single role",
+				"description": "Returns a single role.",
+				"operationId": "getRole",
+				"parameters": [
+					{
+						"name": "role_id",
+						"in": "path",
+						"description": "ID of the role to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RoleRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/runs/{run_id}": {
+			"get": {
+				"tags": [
+					"runs"
+				],
+				"summary": "Get a single run",
+				"description": "Returns a single run.",
+				"operationId": "getRun",
+				"parameters": [
+					{
+						"name": "run_id",
+						"in": "path",
+						"description": "ID of the run to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RunRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/sessions/{session_id}": {
+			"get": {
+				"tags": [
+					"sessions"
+				],
+				"summary": "Get a single session",
+				"description": "Returns a single session.",
+				"operationId": "getSession",
+				"parameters": [
+					{
+						"name": "session_id",
+						"in": "path",
+						"description": "ID of the session to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SessionRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/user": {
+			"get": {
+				"tags": [
+					"user"
+				],
+				"summary": "Get the current user",
+				"description": "Returns the current user.",
+				"operationId": "getCurrentUser",
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CurrentUser"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"415": { "$ref": "#/components/responses/Error415" }
+				}
+			}
+		},
+		"/api/v1/users": {
+			"get": {
+				"tags": [
+					"users"
+				],
+				"summary": "Get all users",
+				"description": "Returns a page of users.",
+				"operationId": "getUserPage",
+				"parameters": [
+					{ "$ref": "#/components/parameters/page" },
+					{ "$ref": "#/components/parameters/perPage" },
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserPage"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/users/{user_id}": {
+			"get": {
+				"tags": [
+					"users"
+				],
+				"summary": "Get a single user",
+				"description": "Returns a single user.",
+				"operationId": "getUser",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"description": "ID of the user to return.",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{ "$ref": "#/components/parameters/expands" }
+				],
+				"responses": {
+					"200": {
+						"description": "Returned if the request was successful.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserRow"
+								}
+							}
+						}
+					},
+					"400": { "$ref": "#/components/responses/Error400" },
+					"401": { "$ref": "#/components/responses/Error401" },
+					"403": { "$ref": "#/components/responses/Error403" },
+					"404": { "$ref": "#/components/responses/Error404" },
+					"415": { "$ref": "#/components/responses/Error415" },
+					"422": { "$ref": "#/components/responses/Error422" }
+				}
+			}
+		},
+		"/api/v1/runs/{run_id}/results": {
+			"get": {
+			  "tags": [
+				"run-results"
+			  ],
+			  "summary": "Get all results for single run in a project",
+			  "description": "Returns all results for a run.",
+			  "operationId": "getRunResultPage",
+			  "parameters": [
+				{
+				  "name": "run_id",
+				  "in": "path",
+				  "description": "ID of the run.",
+				  "required": true,
+				  "schema": {
+					"type": "integer",
+					"format": "int64"
+				  }
+				},
+				{"$ref": "#/components/parameters/page"},
+				{"$ref": "#/components/parameters/perPage"},
+				{"$ref": "#/components/parameters/expands"},
+				{
+				  "name": "sort",
+				  "in": "query",
+				  "description": "Sort field for the list of results (supported: run_results:created_at; default: run_results:created_at)",
+				  "required": false,
+				  "schema": {
+					"type": "string",
+					"enum": [
+					  "run_results:created_at"
+					]
+				  }
+				},
+				{"$ref": "#/components/parameters/order"},
+				{
+				  "name": "created_after",
+				  "in": "query",
+				  "description": "Limit result set to results created after (in ISO8601 format and UTC time zone).",
+				  "required": false,
+				  "schema": {
+					"type": "string",
+					"format": "date-time"
+				  }
+				},
+				{
+				  "name": "created_before",
+				  "in": "query",
+				  "description": "Limit result set to results created before (in ISO8601 format and UTC time zone).",
+				  "required": false,
+				  "schema": {
+					"type": "string",
+					"format": "date-time"
+				  }
+				},
+				{
+				  "name": "created_by",
+				  "in": "query",
+				  "description": "Comma-separated list of users to filter by.",
+				  "required": false,
+				  "schema": {
+					"type": "string"
+				  }
+				},
+				{
+				  "name": "assignee_id",
+				  "in": "query",
+				  "description": "Comma-separated list of assignees to filter by.",
+				  "required": false,
+				  "schema": {
+					"type": "string"
+				  }
+				},
+				{
+				  "name": "status_id",
+				  "in": "query",
+				  "description": "Comma-separated list of statuses to filter by. The system supports up to 25 total statuses. Use the ID keys & name values as defined in your instance, typically: 1 for Untested, 2 for Passed, 3 for Failed, 4 for Retest, 5 for Blocked, 6 for Skipped. Unless modified by your administrator, custom statuses will have IDs 7-25.",
+				  "required": false,
+				  "schema": {
+					"type": "string"
+				  }
+				},
+				{
+				  "name": "get_latest_result",
+				  "in": "query",
+				  "description": "Indicates whether to fetch only the latest result (true, 1) or all results (false, 0).",
+				  "required": false,
+				  "schema": {
+					"type": "boolean"
+				  }
+				}
+			  ],
+			  "responses": {
+				"200": {
+				  "description": "Returned if the request was successful.",
+				  "content": {
+					"application/json": {
+					  "schema": {
+						"$ref": "#/components/schemas/RunResultPage"
+					  }
+					}
+				  }
+				},
+				"400": {"$ref": "#/components/responses/Error400"},
+				"401": {"$ref": "#/components/responses/Error401"},
+				"403": {"$ref": "#/components/responses/Error403"},
+				"404": {"$ref": "#/components/responses/Error404"},
+				"415": {"$ref": "#/components/responses/Error415"},
+				"422": {"$ref": "#/components/responses/Error422"}
+			  }
+			}
+		}
+	}
+}
