@@ -108,4 +108,4 @@ build-server-image:
 	docker build -t $(IMAGE_REPO)/devlake:$(TAG) --build-arg TAG=$(TAG) --build-arg SHA=$(SHA) --file ./Dockerfile .
 
 migration-script-lint:
-	go run core/migration/linter/main.go -- $$(find . -path '**/migrationscripts/**.go')
+	CGO_ENABLED=0 go run core/migration/linter/main.go -- $$(find . -path '**/migrationscripts/**.go')
