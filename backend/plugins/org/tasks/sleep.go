@@ -15,14 +15,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package migrationscripts
+package tasks
 
-import "github.com/apache/incubator-devlake/core/plugin"
+import (
+	"time"
 
-func All() []plugin.MigrationScript {
-	return []plugin.MigrationScript{
-		new(addInitTables),
-		new(addScopeConfigIdToProjects),
-		new(replaceTestsWithRuns),
-	}
+	"github.com/apache/incubator-devlake/core/errors"
+	"github.com/apache/incubator-devlake/core/plugin"
+)
+
+var SleepMeta = plugin.SubTaskMeta{
+	Name:             "sleep",
+	EntryPoint:       Sleep,
+	EnabledByDefault: false,
+	Description:      "for debugging only",
+	DomainTypes:      []string{plugin.DOMAIN_TYPE_CROSS},
+}
+
+// SetProjectMapping binds projects and scopes
+func Sleep(taskCtx plugin.SubTaskContext) errors.Error {
+	data := taskCtx.GetData().(*TaskData)
+	time.Sleep(time.Duration(data.Options.SleepSeconds) * time.Second)
+	return nil
 }
