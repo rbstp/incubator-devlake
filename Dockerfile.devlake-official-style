@@ -33,7 +33,7 @@ RUN go mod download
 # Build the main DevLake binary
 RUN go build -o lake ./server
 
-# Build plugins (including our testmo plugin)
+# Build plugins (including our slack plugin)
 RUN mkdir -p bin/plugins
 
 # Build key plugins to test compatibility
@@ -41,14 +41,20 @@ RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/github/github.so ./p
 RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/gitlab/gitlab.so ./plugins/gitlab  
 RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/jira/jira.so ./plugins/jira
 
+# Build refdiff plugin (essential for DevLake projects)
+RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/refdiff/refdiff.so ./plugins/refdiff
+
+# Build issue_trace plugin (essential for DevLake projects)
+RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/issue_trace/issue_trace.so ./plugins/issue_trace
+
 # Build DORA plugin (essential for DevLake projects)
 RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/dora/dora.so ./plugins/dora
 
 # Build org plugin (essential for DevLake projects)
 RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/org/org.so ./plugins/org
 
-# Build our testmo plugin
-RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/testmo/testmo.so ./plugins/testmo
+# Build our slack plugin
+RUN CGO_ENABLED=1 go build -buildmode=plugin -o bin/plugins/slack/slack.so ./plugins/slack
 
 # Build Python components
 WORKDIR /app/backend/python
