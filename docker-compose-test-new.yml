@@ -1,0 +1,83 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+version: "3"
+services:
+  mysql:
+    image: mysql:8
+    volumes:
+      - mysql-storage:/var/lib/mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: lake
+      MYSQL_USER: merico
+      MYSQL_PASSWORD: merico
+      TZ: UTC
+    command: --character-set-server=utf8mb4
+      --collation-server=utf8mb4_bin
+      --skip-log-bin
+
+  grafana:
+    image: devlake.docker.scarf.sh/apache/devlake-dashboard:latest
+    ports:
+      - 3002:3000
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    environment:
+      GF_SERVER_ROOT_URL: "http://localhost:4000/grafana"
+      GF_USERS_DEFAULT_THEME: "light"
+      GF_SERVE_FROM_SUB_PATH: "true"
+      MYSQL_URL: mysql:3306
+      MYSQL_DATABASE: lake
+      MYSQL_USER: merico
+      MYSQL_PASSWORD: merico
+    depends_on:
+      - mysql
+
+  config-ui:
+    image: devlake-config-ui-test:latest
+    pull_policy: never
+    ports:
+      - 4000:4000
+    environment:
+      GRAFANA_ENDPOINT: grafana:3000
+      DEVLAKE_ENDPOINT: devlake:8080
+      #ADMIN_USER: admin
+      #ADMIN_PASS: admin
+    depends_on:
+      - devlake
+      - grafana
+
+  devlake:
+    image: devlake-from-source-official:latest
+    pull_policy: never
+    ports:
+      - 8080:8080
+    restart: always
+    environment:
+      LOGGING_LEVEL: debug
+      DB_URL: mysql://merico:merico@mysql:3306/lake?charset=utf8mb4&parseTime=True
+      DB_LOGGING_LEVEL: warn
+      ENCRYPTION_SECRET: merico
+      ENABLE_REMOTE_PLUGINS: false
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-storage:
+  grafana-storage:
