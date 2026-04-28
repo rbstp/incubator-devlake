@@ -191,6 +191,25 @@ func ExtractSyncOperations(taskCtx plugin.SubTaskContext) errors.Error {
 			// operationState always represents the same sync as the latest history entry
 			// (when phase=Succeeded). Skip it to avoid the duplicate DeploymentId.
 			if isOperationState && isRedundantOperationState(apiOp.Phase) {
+				// Seed the revision-image cache before skipping: history entries
+				// often omit syncResult.resources, so the operationState is the
+				// only place images appear for this sync.
+				revision := apiOp.Revision
+				if revision == "" {
+					revision = resolveMultiSourceRevision(apiOp.SyncResult.Revisions, apiOp.Sources)
+				}
+				if revision == "" {
+					revision = apiOp.SyncResult.Revision
+				}
+				if revision != "" {
+					if images := collectContainerImages(&apiOp); len(images) > 0 {
+						cached := revisionImageCache[revision]
+						if !stringSlicesEqual(cached, images) {
+							revisionImageCache[revision] = copyStringSlice(images)
+							revisionDirty[revision] = copyStringSlice(images)
+						}
+					}
+				}
 				return nil, nil
 			}
 

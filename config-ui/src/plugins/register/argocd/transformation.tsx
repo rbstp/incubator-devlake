@@ -16,11 +16,12 @@
  *
  */
 
-import { CaretRightOutlined } from '@ant-design/icons';
-import { theme, Collapse, Tag, Input } from 'antd';
+import { CaretRightOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { theme, Collapse, Tag, Input, Switch, Button, Space } from 'antd';
 
-import { ExternalLink, HelpTooltip } from '@/components';
-import { DOC_URL } from '@/release';
+import { HelpTooltip } from '@/components';
+
+type ImageRepoMapping = { pattern: string; repoURL: string };
 
 interface Props {
   entities: string[];
@@ -135,6 +136,78 @@ const renderCollapseItems = ({
             />
             <HelpTooltip content="Optional: Additional regex pattern to identify production deployments." />
           </div>
+          <div style={{ marginTop: 24, marginBottom: 8 }}>
+            <strong>Source Commit Resolution</strong>
+          </div>
+          <div style={{ margin: '8px 0', paddingLeft: 28 }}>
+            <Space align="center">
+              <Switch
+                checked={!!transformation.preferImageCommit}
+                onChange={(checked) =>
+                  onChangeTransformation({
+                    ...transformation,
+                    preferImageCommit: checked,
+                  })
+                }
+              />
+              <span>Derive deployment commit SHA from deployed image tag</span>
+              <HelpTooltip content="When ArgoCD syncs from a separate manifests repo, the synced Revision is the manifests-repo SHA, not the source-code SHA. Enable this to parse a git SHA out of each deployed image's tag (e.g. :v1.2.3-abc1234) and emit one cicd_deployment_commit per parseable image. Falls back to the Revision-based row when no image yields a SHA." />
+            </Space>
+          </div>
+          {transformation.preferImageCommit && (
+            <div style={{ margin: '12px 0 0 28px' }}>
+              <div style={{ marginBottom: 4 }}>
+                <span>Image Repo Mappings</span>
+                <HelpTooltip content="Each mapping pairs an image-ref glob (path.Match syntax: '*' does not span '/') with the source repo URL whose commit SHA the image tag encodes. First match wins. Images that don't match any mapping fall back to the manifests repo URL." />
+              </div>
+              {(transformation.imageRepoMappings ?? []).map((m: ImageRepoMapping, idx: number) => (
+                <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                  <Input
+                    style={{ flex: 1 }}
+                    placeholder="ghcr.io/your-org/myapp"
+                    value={m.pattern ?? ''}
+                    onChange={(e) => {
+                      const next = [...(transformation.imageRepoMappings ?? [])];
+                      next[idx] = { ...next[idx], pattern: e.target.value };
+                      onChangeTransformation({ ...transformation, imageRepoMappings: next });
+                    }}
+                  />
+                  <Input
+                    style={{ flex: 2 }}
+                    placeholder="https://github.com/your-org/myapp"
+                    value={m.repoURL ?? ''}
+                    onChange={(e) => {
+                      const next = [...(transformation.imageRepoMappings ?? [])];
+                      next[idx] = { ...next[idx], repoURL: e.target.value };
+                      onChangeTransformation({ ...transformation, imageRepoMappings: next });
+                    }}
+                  />
+                  <Button
+                    type="text"
+                    icon={<MinusCircleOutlined />}
+                    onClick={() => {
+                      const next = (transformation.imageRepoMappings ?? []).filter(
+                        (_: ImageRepoMapping, i: number) => i !== idx,
+                      );
+                      onChangeTransformation({ ...transformation, imageRepoMappings: next });
+                    }}
+                  />
+                </div>
+              ))}
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                onClick={() =>
+                  onChangeTransformation({
+                    ...transformation,
+                    imageRepoMappings: [...(transformation.imageRepoMappings ?? []), { pattern: '', repoURL: '' }],
+                  })
+                }
+              >
+                Add mapping
+              </Button>
+            </div>
+          )}
           <div style={{ marginTop: 16, padding: '8px 12px', background: '#f0f7ff', borderRadius: '4px' }}>
             <strong>Note:</strong> ArgoCD limits deployment history to the last 10 sync operations by default
             (controlled by <code>revisionHistoryLimit</code>). Consider increasing this value in your ArgoCD application

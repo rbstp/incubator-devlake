@@ -76,6 +76,8 @@ export const ArgoCDConfig: IPluginConfig = {
       envNamePattern: '(?i)prod(.*)',
       deploymentPattern: '',
       productionPattern: '',
+      preferImageCommit: false,
+      imageRepoMappings: [],
     },
   },
 };

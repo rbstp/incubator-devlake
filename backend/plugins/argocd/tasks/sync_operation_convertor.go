@@ -136,40 +136,11 @@ func ConvertSyncOperations(taskCtx plugin.SubTaskContext) errors.Error {
 
 			results = append(results, deployment)
 
-			if syncOp.Revision != "" {
-				// Priority: repo_url resolved at extraction time (always present for
-				// multi-source apps) → application-level repo_url → deployment name
-				// as a last-resort non-empty placeholder.
-				repoUrl := deployment.Name
-				switch {
-				case syncOp.RepoURL != "":
-					repoUrl = syncOp.RepoURL
-				case application != nil && application.RepoURL != "":
-					repoUrl = application.RepoURL
-				}
-
-				deploymentCommit := &devops.CicdDeploymentCommit{
-					DomainEntity:        domainlayer.NewDomainEntity(deploymentId),
-					CicdDeploymentId:    deploymentId,
-					CicdScopeId:         scopeId,
-					Name:                deployment.Name,
-					DisplayTitle:        deployment.DisplayTitle,
-					Url:                 deployment.Url,
-					Result:              deployment.Result,
-					Status:              deployment.Status,
-					OriginalStatus:      deployment.OriginalStatus,
-					OriginalResult:      deployment.OriginalResult,
-					Environment:         deployment.Environment,
-					OriginalEnvironment: deployment.OriginalEnvironment,
-					TaskDatesInfo: devops.TaskDatesInfo{
-						CreatedDate:  created,
-						StartedDate:  syncOp.StartedAt,
-						FinishedDate: syncOp.FinishedAt,
-					},
-					CommitSha: syncOp.Revision,
-					RepoUrl:   repoUrl,
-				}
-				results = append(results, deploymentCommit)
+			for _, commit := range emitDeploymentCommits(
+				syncOp, application, data.Options.ScopeConfig,
+				deployment, deploymentId, scopeId, created,
+			) {
+				results = append(results, commit)
 			}
 
 			return results, nil
@@ -181,6 +152,82 @@ func ConvertSyncOperations(taskCtx plugin.SubTaskContext) errors.Error {
 	}
 
 	return converter.Execute()
+}
+
+func emitDeploymentCommits(
+	syncOp *models.ArgocdSyncOperation,
+	application *models.ArgocdApplication,
+	scopeConfig *models.ArgocdScopeConfig,
+	deployment *devops.CICDDeployment,
+	deploymentId, scopeId string,
+	created time.Time,
+) []*devops.CicdDeploymentCommit {
+	fallbackRepoUrl := deployment.Name
+	switch {
+	case syncOp.RepoURL != "":
+		fallbackRepoUrl = syncOp.RepoURL
+	case application != nil && application.RepoURL != "":
+		fallbackRepoUrl = application.RepoURL
+	}
+
+	if scopeConfig != nil && scopeConfig.PreferImageCommit && len(syncOp.ContainerImages) > 0 {
+		var commits []*devops.CicdDeploymentCommit
+		for _, image := range syncOp.ContainerImages {
+			sha, ok := ParseImageCommitSHA(image)
+			if !ok {
+				continue
+			}
+			repoUrl := resolveImageRepoURL(image, scopeConfig.ImageRepoMappings, fallbackRepoUrl)
+			commits = append(commits, buildDeploymentCommit(
+				fmt.Sprintf("%s:%s", deploymentId, image),
+				deploymentId, scopeId, deployment, syncOp, created,
+				sha, repoUrl,
+			))
+		}
+		if len(commits) > 0 {
+			return commits
+		}
+	}
+
+	if syncOp.Revision == "" {
+		return nil
+	}
+	return []*devops.CicdDeploymentCommit{
+		buildDeploymentCommit(
+			deploymentId, deploymentId, scopeId, deployment, syncOp, created,
+			syncOp.Revision, fallbackRepoUrl,
+		),
+	}
+}
+
+func buildDeploymentCommit(
+	id, deploymentId, scopeId string,
+	deployment *devops.CICDDeployment,
+	syncOp *models.ArgocdSyncOperation,
+	created time.Time,
+	commitSha, repoUrl string,
+) *devops.CicdDeploymentCommit {
+	return &devops.CicdDeploymentCommit{
+		DomainEntity:        domainlayer.NewDomainEntity(id),
+		CicdDeploymentId:    deploymentId,
+		CicdScopeId:         scopeId,
+		Name:                deployment.Name,
+		DisplayTitle:        deployment.DisplayTitle,
+		Url:                 deployment.Url,
+		Result:              deployment.Result,
+		Status:              deployment.Status,
+		OriginalStatus:      deployment.OriginalStatus,
+		OriginalResult:      deployment.OriginalResult,
+		Environment:         deployment.Environment,
+		OriginalEnvironment: deployment.OriginalEnvironment,
+		TaskDatesInfo: devops.TaskDatesInfo{
+			CreatedDate:  created,
+			StartedDate:  syncOp.StartedAt,
+			FinishedDate: syncOp.FinishedAt,
+		},
+		CommitSha: commitSha,
+		RepoUrl:   repoUrl,
+	}
 }
 
 func convertPhaseToResult(phase string) string {

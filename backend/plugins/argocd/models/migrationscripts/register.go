@@ -26,5 +26,6 @@ func All() []plugin.MigrationScript {
 		new(addInitTables),
 		new(addImageSupportArtifacts),
 		new(addRepoURLToSyncOperations),
+		new(addPreferImageCommitToScopeConfig),
 	}
 }

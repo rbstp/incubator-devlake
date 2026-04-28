@@ -23,11 +23,21 @@ import (
 
 type ArgocdScopeConfig struct {
 	common.ScopeConfig `mapstructure:",squash" json:",inline" gorm:"embedded"`
-	DeploymentPattern  string `gorm:"type:varchar(255)" mapstructure:"deploymentPattern" json:"deploymentPattern"`
-	ProductionPattern  string `gorm:"type:varchar(255)" mapstructure:"productionPattern" json:"productionPattern"`
-	EnvNamePattern     string `gorm:"type:varchar(255)" mapstructure:"envNamePattern" json:"envNamePattern"`
+	DeploymentPattern  string                   `gorm:"type:varchar(255)" mapstructure:"deploymentPattern" json:"deploymentPattern"`
+	ProductionPattern  string                   `gorm:"type:varchar(255)" mapstructure:"productionPattern" json:"productionPattern"`
+	EnvNamePattern     string                   `gorm:"type:varchar(255)" mapstructure:"envNamePattern" json:"envNamePattern"`
+	PreferImageCommit  bool                     `gorm:"column:prefer_image_commit;default:false" mapstructure:"preferImageCommit" json:"preferImageCommit"`
+	ImageRepoMappings  []ArgocdImageRepoMapping `gorm:"type:json;serializer:json" mapstructure:"imageRepoMappings" json:"imageRepoMappings"`
 }
 
 func (ArgocdScopeConfig) TableName() string {
 	return "_tool_argocd_scope_configs"
+}
+
+// ArgocdImageRepoMapping pairs an image-ref glob with a source repo URL.
+// Pattern is a path.Match glob against the tag- and digest-stripped ref,
+// so `*` does not span `/`. First match wins; empty fields are skipped.
+type ArgocdImageRepoMapping struct {
+	Pattern string `mapstructure:"pattern" json:"pattern"`
+	RepoURL string `mapstructure:"repoURL" json:"repoURL"`
 }
